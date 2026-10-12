@@ -1,0 +1,72 @@
+pipeline_screening:
+  raman_input: 'pure_glu_spectra.csv'
+  hplc_input: 'pure_glu_hplc.csv'
+  evaluation_policy:
+    n_components: 1
+    intensity_tolerance: 100
+#    reference_peaks: [880, 1049, 1089, 1278, 1455] #Pappas 2016
+    reference_peaks: [713, 774, 850, 903, 918, 1022, 1066, 1128, 1206, 1265, 1333, 1368, 1461 ] # Dude 2019 Glucose
+    wn_tolerance_spectra: 2
+    fit_window: 50
+    n_splits: 5
+    wn_tolerance_coef: 5
+    metrics:
+      - Median_F1_TP
+      - Median_selectivity
+      - Median_FWHM
+      - Median_Voigt
+      - Median_mad_baseline
+      - Snr_improvement
+      - RMSE_pct
+      - Median_F1_coef
+  baseline:
+    none:
+      alg: ""
+    asls:
+      alg: "lam={lam}, p={p}, diff_order={diff_order}"
+      lam: [1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8]
+      p: [1.0e-1, 1.0e-2, 1.0e-3]
+      diff_order: [1, 2]
+    mixture_model:
+      alg: "lam={lam}, p={p}, num_knots={num_knots}, diff_order={diff_order}"
+      lam: [1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7]
+      p: [1.0e-1, 1.0e-2, 1.0e-3]
+      num_knots: [50, 75, 100]
+      diff_order: [2, 3]
+  scattering:
+    none:
+      alg: ""
+    EMSC:
+      alg: "order={order}"
+      order: [1, 2]
+  filtering:
+    none:
+      alg: ""
+    savitzky-golay:
+      alg: "window_length={window_length}, polyorder={polyorder}"
+      window_length: [5, 7, 9]
+      polyorder: [2, 3]
+
+pipeline_selection:
+#  hard_filters:
+#    Median_selectivity: [large, 0.4]
+#    Snr_improvement:    [large, 1.0]
+#    RMSE_pct:           [small, 5.0]
+#    Median_Voigt:       [large, 0.9]
+#  bounds:
+#    Des_F1_TP_spectra: {metric: Median_F1_TP,        direction: large, lower: 0, upper: 1}
+#    Des_fwhm:          {metric: Median_FWHM,         direction: small, lower: 4, upper: reference, physical_bound: true}
+#    Des_mad:           {metric: Median_mad_baseline, direction: small, lower: 0, upper: reference, physical_bound: true}
+#    Des_F1_TP_coef:    {metric: Median_F1_coef,      direction: large, lower: 0, upper: 1}
+
+  hard_filters:
+    Median_selectivity: [large, 0.4]
+    Snr_improvement:    [large, 1.0]
+    RMSE_pct:           [small, 5.0]
+    Median_Voigt:       [large, 0.5]
+  bounds:
+    Des_F1_TP_spectra: {metric: Median_F1_TP,        direction: large, lower: 0, upper: 1}
+    Des_fwhm:          {metric: Median_FWHM,         direction: small, lower: 4, upper: reference, physical_bound: true}
+    Des_mad:           {metric: Median_mad_baseline, direction: small, lower: 0, upper: reference, physical_bound: true}
+    Des_F1_TP_coef:    {metric: Median_F1_coef,      direction: large, lower: 0, upper: 1}
+  file_out: 'test_glu.csv'
