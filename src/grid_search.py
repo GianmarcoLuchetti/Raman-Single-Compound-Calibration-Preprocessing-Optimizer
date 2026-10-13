@@ -23,14 +23,16 @@ def process_pipeline(
     snr_raw: float,
     sel_raw_median: float,
     eval_config: Dict[str, Any],
-    metric_names: List
+    metric_names: List,
+    reference: Optional[np.ndarray] = None,
 ) -> Optional[Dict[str, Any]]:
     """Preprocess spectra with one pipeline combination and evaluate it.
 
-    Applies scatter correction, then per-spectrum baseline removal and
-    noise filtering, then a global non-negativity shift. It then scores
-    the result with `Policy.evaluate`. Designed as a parallel worker: all
-    processing objects are created inside the call.
+    Preprocesses the spectra with `apply_preprocessing` (scatter
+    correction, per-spectrum baseline removal and noise filtering, global
+    non-negativity shift), then scores the result with `Policy.evaluate`.
+    Designed as a parallel worker: all processing objects are created
+    inside the call.
 
     Parameters
     ----------
@@ -49,7 +51,7 @@ def process_pipeline(
     y : np.ndarray, shape (n_spectra,) or (n_spectra, 1)
         Reference response values, e.g. analyte concentrations.
     wn : np.ndarray, shape (n_wavenumbers,)
-        Wavenumber axis, in cm⁻¹. Used only in evaluation.
+        Wavenumber axis, in cm⁻¹. Used for baseline removal and evaluation.
     snr_raw : float
         Median SNR of the raw spectra, passed to `Policy.evaluate`.
     sel_raw_median : float
@@ -59,6 +61,10 @@ def process_pipeline(
     metric_names : list of str
         Names for the entries of the metric vector, in the order returned
         by `Policy.evaluate`.
+    reference : np.ndarray, shape (n_wavenumbers,), optional
+        Reference spectrum for scatter correction. Forwarded only when
+        `scat_cfg` names a method that accepts one (``'EMSC'``), so the
+        same reference can be passed to every combination of a grid.
 
     Returns
     -------
@@ -85,74 +91,43 @@ def process_pipeline(
 
     See Also
     --------
-    apply_preprocessing : The same preprocessing as a standalone function.
+    apply_preprocessing : Performs the preprocessing step.
     Policy.evaluate : Computes the metric vector.
     """
 
     combo_start = time.time()
-    print(
-        f"[{i}] 🚧 Starting: {base_cfg['name']} + {scat_cfg['name']} + {filt_cfg['name']}"
-    )
+    label = f"{base_cfg['name']} + {scat_cfg['name']} + {filt_cfg['name']}"
+    print(f"[{i}] 🚧 Starting: {label}")
 
-    # Create objects inside worker (avoids pickling issues)
-    baseline_obj = Baseline_removal()
-    scattering_obj = Scattering_correction()
-    filtering_obj = Noise_filter()
     policy_obj = Policy(eval_config)
 
+    # ---- Preprocessing
     try:
-        # Scattering correction
-        if scat_cfg['name'] != 'none':
-            X_scatter = scattering_obj.correct_scattering(X, scat_cfg)
-        else:
-            X_scatter = X.copy()
-
-        # Baseline and filtering: per-spectrum operations
-        X_corrected = np.zeros_like(X_scatter, dtype=np.float64)
-        for idx in range(X_scatter.shape[0]):
-            x_baseline = (baseline_obj.remove_baseline(X_scatter[idx], base_cfg)
-                          if base_cfg['name'] != 'none' else X_scatter[idx])
-            x_filtered = (filtering_obj.filter_noise(x_baseline, filt_cfg)
-                          if filt_cfg['name'] != 'none' else x_baseline)
-
-            X_corrected[idx] = x_filtered
-
-        # Global shift: single value for entire dataset (not per-spectrum)
-        global_min = X_corrected.min()
-        if global_min < 0:
-            X_corrected += abs(global_min)
-
-    except Exception as e:
-        print(
-            f"[{i}] ❌ Preprocess error "
-            f"({base_cfg['name']} + {scat_cfg['name']} + {filt_cfg['name']}): {e}"
+        X_corrected = u.apply_preprocessing(
+            X, wn, scat_cfg, base_cfg, filt_cfg,
+            reference=reference if scat_cfg['name'] == 'EMSC' else None,
         )
+    except Exception as e:
+        print(f"[{i}] ❌ Preprocess error ({label}): {e}")
         return None
 
     # ---- Evaluation
     try:
         evaluation = policy_obj.evaluate(X_corrected, wn, y, snr_raw, sel_raw_median)
         combo_time = time.time() - combo_start
-        print(
-            f"[{i}] ✅ Evaluation complete in {combo_time:.2f}s — "
-            f"{base_cfg['name']} + {scat_cfg['name']} + {filt_cfg['name']}"
-        )
+        print(f"[{i}] ✅ Evaluation complete in {combo_time:.2f}s — {label}")
 
         # Convert np array to dict using metric names
         eval_dict = dict(zip(metric_names, evaluation))
 
-        result = {
+        return {
             "baseline_config": base_cfg,
             "scattering_config": scat_cfg,
             "filtering_config": filt_cfg,
             **eval_dict,
         }
-        return result
     except Exception as e:
-        print(
-            f"[{i}] ❌ Evaluation failed "
-            f"({base_cfg['name']} + {scat_cfg['name']} + {filt_cfg['name']}): {e}"
-        )
+        print(f"[{i}] ❌ Evaluation failed ({label}): {e}")
         return None
 
 

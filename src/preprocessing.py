@@ -1,6 +1,6 @@
 import numpy as np
 from pybaselines import Baseline
-from typing import Dict
+from typing import Dict, Optional
 import chemotools.scatter as sc
 from scipy.signal import savgol_filter
 from scipy.ndimage import gaussian_filter, median_filter
@@ -20,8 +20,8 @@ class Baseline_removal:
         evenly spaced points indexed from 0 to "n_points - 1".
     """
 
-    def __init__(self) -> None:
-        self.br = Baseline()
+    def __init__(self, wn) -> None:
+        self.br = Baseline(wn)
 
     def remove_baseline(self, spectra: np.ndarray, config: Dict) -> np.ndarray:
         """Fit a baseline with the configured method and subtract it.
@@ -84,6 +84,8 @@ class Scattering_correction:
         "'EMSC'" (extended multiplicative scatter correction),
         "'SNV'" (standard normal variate) and "'RNV'" (robust normal
         variate).
+    reference_methods : set of str
+        Methods that accept an external reference spectrum.
     """
 
     def __init__(self) -> None:
@@ -92,8 +94,14 @@ class Scattering_correction:
             'SNV': 'StandardNormalVariate',
             'RNV': 'RobustNormalVariate'
         }
+        self.reference_methods = {'EMSC'}
 
-    def correct_scattering(self, spectra: np.ndarray, config: Dict) -> np.ndarray:
+    def correct_scattering(
+        self,
+        spectra: np.ndarray,
+        config: Dict,
+        reference: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
         """Apply the configured scatter correction to one or more spectra.
 
         A 1D spectrum is reshaped to a single-row matrix before fitting and
@@ -112,6 +120,11 @@ class Scattering_correction:
                 "'RNV'".
             "'params'" : dict
                 Keyword arguments passed to the transformer constructor.
+        reference : np.ndarray, shape (n_points,), optional
+            Reference spectrum on the same wavenumber axis as `spectra`.
+            Only valid for methods in `reference_methods`. If None, the
+            transformer's default reference is used (mean spectrum for
+            "'EMSC'").
 
         Returns
         -------
@@ -123,26 +136,41 @@ class Scattering_correction:
         KeyError
             If `config` lacks the "'name'" or "'params'" key.
         ValueError
-            If `config['name']` is not a key of `scattering_methods`.
+            If `config['name']` is not a key of `scattering_methods`, if
+            `reference` is given for a method that does not accept one, or
+            if `reference` length differs from the spectral axis.
 
         Notes
         -----
         The transformer is refitted on `spectra` at every call via
-        "fit_transform"; no fitted state is kept between calls.
+        "fit_transform"; no fitted state is kept between calls. A single
+        1D spectrum with no `reference` is corrected against itself, which
+        makes EMSC degenerate; pass a `reference` in that case.
         """
         name = config['name']
-        params = config['params']
+        params = dict(config['params'])
 
         # Get the class name
         class_name = self.scattering_methods.get(name)
         if class_name is None:
             raise ValueError(f"Unknown scattering correction method: '{name}'")
 
-        scattering_class = getattr(sc, class_name, None)
+        spectra_2d = spectra.reshape(1, -1) if spectra.ndim == 1 else spectra
+
+        if reference is not None:
+            if name not in self.reference_methods:
+                raise ValueError(f"Method '{name}' does not accept a reference spectrum")
+            reference = np.asarray(reference).ravel()
+            if reference.shape[0] != spectra_2d.shape[1]:
+                raise ValueError(
+                    f"Reference length ({reference.shape[0]}) does not match "
+                    f"spectral axis ({spectra_2d.shape[1]})"
+                )
+            params['reference'] = reference
+
+        scattering_class = getattr(sc, class_name)
         scattering_method = scattering_class(**params)
 
-
-        spectra_2d = spectra.reshape(1, -1) if spectra.ndim == 1 else spectra
         result = scattering_method.fit_transform(spectra_2d)
 
         return result.ravel() if spectra.ndim == 1 else result

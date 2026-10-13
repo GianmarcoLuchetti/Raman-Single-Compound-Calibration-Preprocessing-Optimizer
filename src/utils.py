@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Iterable
 import pandas as pd
 import numpy as np
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import itertools
 from scipy.signal import find_peaks
 from preprocessing import Baseline_removal, Noise_filter, Scattering_correction
@@ -668,7 +668,8 @@ def thompson_fwhm(fG, fL):
 
 
 def apply_preprocessing(spectra_raw: np.ndarray, wn: np.ndarray, scattering_config: dict,
-                        baseline_config: dict, filtering_config: dict) -> np.ndarray:
+                        baseline_config: dict, filtering_config: dict,
+                        reference: Optional[np.ndarray] = None) -> np.ndarray:
     """Apply scatter correction, baseline removal and noise filtering.
 
     Applies scatter correction to the whole matrix, then baseline removal
@@ -692,6 +693,13 @@ def apply_preprocessing(spectra_raw: np.ndarray, wn: np.ndarray, scattering_conf
     filtering_config : dict
         ``{'name': ..., 'params': ...}`` for `Noise_filter.filter_noise`,
         or ``{'name': 'none'}``.
+    reference : np.ndarray, shape (n_wavenumbers,), optional
+        Reference spectrum for scatter correction, on the same wavenumber
+        axis as `spectra_raw`. Passed to
+        `Scattering_correction.correct_scattering`; only valid for methods
+        that accept a reference (``'EMSC'``). Ignored when scatter
+        correction is ``'none'``. If None, the reference is estimated from
+        this batch.
 
     Returns
     -------
@@ -704,24 +712,29 @@ def apply_preprocessing(spectra_raw: np.ndarray, wn: np.ndarray, scattering_conf
         If any config lacks the ``'name'`` key, or a non-``'none'``
         config lacks ``'params'``.
     ValueError
-        If a config names an unknown method.
+        If a config names an unknown method, or `reference` is given for a
+        scatter-correction method that does not accept one or does not
+        match the spectral axis.
 
     Notes
     -----
-    Scatter correction sees all spectra at once, so EMSC uses a reference
-    estimated from this batch. Baseline removal and filtering receive one
-    1D spectrum at a time. The final shift adds :math:`|\\min X|` to
-    every value of the matrix when :math:`\\min X < 0`. This shift depends
-    on the whole batch.
+    Scatter correction sees all spectra at once, so without `reference`
+    EMSC uses a reference estimated from this batch; supplying `reference`
+    makes the correction independent of batch composition. Baseline
+    removal and filtering receive one 1D spectrum at a time. The final
+    shift adds :math:`|\\min X|` to every value of the matrix when
+    :math:`\\min X < 0`. This shift depends on the whole batch.
     """
 
     scattering_obj = Scattering_correction()
-    baseline_obj = Baseline_removal()
+    baseline_obj = Baseline_removal(wn)
     filtering_obj = Noise_filter()
 
     # Scattering correction: apply to FULL matrix first
     if scattering_config['name'] != 'none':
-        X_scatter = scattering_obj.correct_scattering(spectra_raw.copy(), scattering_config)
+        X_scatter = scattering_obj.correct_scattering(
+            spectra_raw.copy(), scattering_config, reference=reference
+        )
     else:
         X_scatter = spectra_raw.copy()
 
@@ -742,7 +755,63 @@ def apply_preprocessing(spectra_raw: np.ndarray, wn: np.ndarray, scattering_conf
     return X_corrected
 
 
-def selection(results, hard_filters, bounds, n_best=1, file_out=None):
+def selection(results: pd.DataFrame, hard_filters: dict[str, tuple[str, float]],
+              bounds: dict[str, dict], n_best: int = 1,
+              file_out: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Rank pipelines by overall desirability after hard filtering.
+
+    Converts selected metrics to desirabilities in [0, 1] and combines
+    them per pipeline with a geometric mean. It then removes pipelines
+    that fail any hard threshold and returns the survivors together with
+    the `n_best` highest-ranked ones.
+
+    Parameters
+    ----------
+    results : pd.DataFrame
+        One row per pipeline with raw metric columns, as returned by
+        `main`. The first row is used as the reference wherever a bound
+        is ``'reference'``. Not modified.
+    hard_filters : dict of str to tuple of (str, float)
+        Mapping from metric column to ``(direction, threshold)``. With
+        ``'large'``, rows need ``metric >= threshold``; with any other
+        direction, rows need ``metric <= threshold``.
+    bounds : dict of str to dict
+        Mapping from the name of a new desirability column to its
+        specification, with keys:
+
+        ``'metric'`` : str
+            Source metric column in `results`.
+        ``'direction'`` : {'large', 'small'}
+            Selects `large_is_best` or `small_is_best`.
+        ``'lower'``, ``'upper'`` : float, None or 'reference'
+            Desirability anchors. ``'reference'`` takes the metric value
+            in the first row of `results`; None uses the 5th or 95th
+            percentile.
+        ``'physical_bound'`` : bool, optional
+            Passed to the desirability function.
+    n_best : int, default=1
+        Number of top-ranked pipelines to return.
+    file_out : str, optional
+        If given, path of a CSV file to which all pipelines, with their
+        desirability and ``'Geom_mean'`` columns, are written before
+        hard filtering.
+
+    Returns
+    -------
+    filtered : pd.DataFrame
+        Pipelines that pass all hard filters, with the desirability
+        columns and ``'Geom_mean'`` added.
+    best : pd.DataFrame
+        The `n_best` rows of `filtered` with the largest ``'Geom_mean'``,
+        in descending order. Rows with a NaN geometric mean are excluded.
+
+    Raises
+    ------
+    KeyError
+        If a metric column or specification key is missing, or a
+        ``'direction'`` in `bounds` is neither ``'large'`` nor
+        ``'small'``.
+    """
 
     results = results.copy()
     desirability = {'large': large_is_best, 'small': small_is_best}
