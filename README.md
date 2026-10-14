@@ -1,4 +1,4 @@
-# Balancing-prediction-performance-and-spectral-interpretability
+# Raman-Single-Compound-Calibration-Preprocessing-Optimizer
 
 ## Description
 
@@ -30,7 +30,7 @@ The following software can be installed via GitHub executing the following code:
 
 After the installation run on your terminal:
 
-```cd /Balancing-prediction-performance-and-spectral-interpretability```
+```cd /Raman-Single-Compound-Calibration-Preprocessing-Optimizer```
 
 ### Requirements 
 
@@ -137,7 +137,7 @@ If `<save>` is `true`, results are written to `<results_dir>`:
 
 ## Copyright
 
-Technische Universiteit Delft hereby disclaims all copyright interest in the program “Balancing-prediction-performance-and-spectral-interpretability” (used to design Raman preprocessing pipelines via a data driven approach) written by the Authors.
+Technische Universiteit Delft hereby disclaims all copyright interest in the program “Raman-Single-Compound-Calibration-Preprocessing-Optimizer” (used to design Raman preprocessing pipelines via a data driven approach) written by the Authors.
 Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Dean of Faculty of Applied Science
 
 © 2026 Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Delft, The Netherlands.
