@@ -8,6 +8,19 @@ The code is used to design data preprocessing pipelines for the rapid calibratio
 using evaluation metrics measured after testing a specific pipeline. The tool provides an automated workflow for screening pipelines and
 selecting the best based on a multi-criteria evaluation policy.
 
+### Repository Structure
+```bash
+├── README.md
+├── requirements.txt
+└── src
+    ├── config.yml
+    ├── evaluation_metrics.py
+    ├── grid_search.py
+    ├── main.py
+    ├── preprocessing.py
+    └── utils.py
+```
+
 
 ## Installation
 
@@ -37,14 +50,98 @@ To install the required libraries execute:
 ```pip install -r requirements.txt```
 
 
+
 ## Usage
+
+The workflow is controlled entirely through `src/config.yml`: no code changes are required to run a new screening.
+
+### 1. Prepare the data
+
+The framework requires two datasets:
+
+- **raman_input**: single-compound Raman spectra (e.g., glucose and ethanol), including a blank (e.g., medium).
+- **hplc_input**: reference concentrations of taget analytes.
+
+The spectra file should contain one spectrum per row, with Raman shifts as column headers. The HPLC file should contain one concentration for each spectrum.
+
+| Index | 400.0 | 401.0 | ... | 1800.0 |
+|---|---|---|---|---|
+|S1| ... | ... | ... | ... |
+|S2| ... | ... | ... | ... |
+|S3| ... | ... | ... | ... |
+
+| Index | Concentration |
+|---|---|
+|S1| ... |
+|S2| ... |
+|S3| ... |
+
+### 2. Configure the run
+
+Edit `src/config.yml` to set the datasets, the preprocessing search space and the evaluation settings:
+
+```yaml
+pipeline_screening:
+  raman_input: 
+  hplc_input: 
+  evaluation_policy:
+    n_components: 
+    intensity_tolerance: 
+    reference_peaks: [<...>]
+...
+  baseline:
+    none:
+      alg: ""
+    asls:
+      alg: "lam={lam}, p={p}, diff_order={diff_order}"
+      lam: [<...>]
+      p: [<...>]
+      diff_order: [<...>]
+...
+pipeline_selection:
+  hard_filters:
+    Median_selectivity: [<...>]
+...
+  bounds:
+    Des_F1_TP_spectra: {metric: ,direction: ,lower: ,upper: }
+...
+```
+
+### 3. Run the screening
+
+From the repository root:
+
+```bash
+cd src
+python main.py
+```
+
+`main.py` performs three steps:
+
+1. **Grid search** (`grid_search.py`): generates every combination of scattering correction, baseline correction and filtering defined in `config.yml`, and applies each pipeline to the spectra dataset (`preprocessing.py`). Pipelines are evaluated in parallel with `joblib`.
+2. **Evaluation** (`evaluation_metrics.py`): for each pipeline, computes
+   - *spectral quality metrics*: SNR, FWHM, Voigt fit R², MAD of the baseline, peak F1 score and selectivity;
+   - *calibration performance metrics*: rRMSECV from cross-validated PLS on the calibration set and peak F1 score of the regression vector.
+3. **Selection**: discards pipelines failing the hard filter, then ranks the remainder by the geometric mean of Derringer–Suich desirability functions across all metrics.
+
+### 4. Outputs
+
+Results are written to `<results_dir>`:
+
+- `<all_pipelines.csv>`: every screened pipeline with its metrics and overall desirability;
+- `<ranking.csv>`: pipelines passing the hard filter, ranked by desirability;
+- `<best_pipeline.yml>`: configuration of the top-ranked pipeline.
+
+
 
 ## Copyright
 
-Technische Universiteit Delft hereby disclaims all copyright interest in the program “Raman Preprocessing Pipelines Optimizator” (used to design data preprocessing pipelines via a data driven approach) written by the Author(s).
-Gianmarco Luchetti Sfondalmondo, Dean of Faculty of Applied Science
+Technische Universiteit Delft hereby disclaims all copyright interest in the program “Balancing-prediction-performance-and-spectral-interpretability” (used to design Raman preprocessing pipelines via a data driven approach) written by the Authors.
+Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Dean of Faculty of Applied Science
 
-© 2026 Gianmarco Luchetti Sfondalmondo, Delft, The Netherlands.
+© 2026 Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Delft, The Netherlands.
+
+
 
 ## License
 
