@@ -1,0 +1,10 @@
+pandas~=2.2.3
+numpy~=2.2.6
+pathlib~=1.0.1
+scipy~=1.15.3
+pyyaml~=6.0.2
+scikit-learn~=1.6.1
+line-profiler~=5.0.0
+chemotools~=0.2.5
+joblib~=1.5.1
+pybaselines~=1.2.0

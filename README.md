@@ -84,10 +84,10 @@ Edit `src/config.yml` to set the datasets, the preprocessing search space and th
 pipeline_screening:
   raman_input: 
   hplc_input: 
+  results_dir:
+  save: 
   evaluation_policy:
     n_components: 
-    intensity_tolerance: 
-    reference_peaks: [<...>]
 ...
   baseline:
     none:
@@ -126,11 +126,12 @@ python main.py
 
 ### 4. Outputs
 
-Results are written to `<results_dir>`:
+If `<save>` is `true`, results are written to `<results_dir>`:
 
-- `<all_pipelines.csv>`: every screened pipeline with its metrics and overall desirability;
-- `<ranking.csv>`: pipelines passing the hard filter, ranked by desirability;
-- `<best_pipeline.yml>`: configuration of the top-ranked pipeline.
+- `screening_results.csv`: every screened pipeline with its spectral quality metrics, calibration performance metrics and desirability scores;
+- `filtered_ranking.csv`: the pipelines that pass the hard filters, ranked by geometric mean desirability in descending order;
+- `best_pipeline.yml`: the top-ranked pipeline, with its preprocessing configuration (scattering correction, baseline correction, noise filtering), measured metrics, individual desirabilities and geometric mean;
+- `config_used.yml`: a copy of the configuration used for the run, so the results can be reproduced.
 
 
 

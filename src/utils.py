@@ -756,8 +756,7 @@ def apply_preprocessing(spectra_raw: np.ndarray, wn: np.ndarray, scattering_conf
 
 
 def selection(results: pd.DataFrame, hard_filters: dict[str, tuple[str, float]],
-              bounds: dict[str, dict], n_best: int = 1,
-              file_out: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+              bounds: dict[str, dict], n_best: int = 1) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Rank pipelines by overall desirability after hard filtering.
 
     Converts selected metrics to desirabilities in [0, 1] and combines
@@ -791,10 +790,6 @@ def selection(results: pd.DataFrame, hard_filters: dict[str, tuple[str, float]],
             Passed to the desirability function.
     n_best : int, default=1
         Number of top-ranked pipelines to return.
-    file_out : str, optional
-        If given, path of a CSV file to which all pipelines, with their
-        desirability and ``'Geom_mean'`` columns, are written before
-        hard filtering.
 
     Returns
     -------
@@ -830,9 +825,6 @@ def selection(results: pd.DataFrame, hard_filters: dict[str, tuple[str, float]],
 
     # geometric mean excludes hard-filtered metrics
     results['Geom_mean'] = results[list(bounds)].apply(gmean, axis=1)
-
-    if file_out is not None:
-        results.to_csv(file_out)
 
     # hard filter
     mask = pd.Series(True, index=results.index)

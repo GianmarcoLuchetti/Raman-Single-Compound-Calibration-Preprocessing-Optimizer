@@ -1,6 +1,8 @@
 pipeline_screening:
   raman_input: 'pure_glu_spectra.csv'
   hplc_input: 'pure_glu_hplc.csv'
+  results_dir: results/
+  save: true
   evaluation_policy:
     n_components: 1
     intensity_tolerance: 100
@@ -69,4 +71,3 @@ pipeline_selection:
     Des_fwhm:          {metric: Median_FWHM,         direction: small, lower: 4, upper: reference, physical_bound: true}
     Des_mad:           {metric: Median_mad_baseline, direction: small, lower: 0, upper: reference, physical_bound: true}
     Des_F1_TP_coef:    {metric: Median_F1_coef,      direction: large, lower: 0, upper: 1}
-  file_out: 'test_glu.csv'
