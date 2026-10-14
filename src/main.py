@@ -2,8 +2,7 @@ import warnings
 import utils as u
 import yaml
 from grid_search import grid_search
-
-from pathlib import Path  # NEW
+from pathlib import Path
 
 if __name__ == '__main__':
     warnings.filterwarnings('ignore')
@@ -15,8 +14,7 @@ if __name__ == '__main__':
     X_data = cfg_screening['raman_input']
     y_data = cfg_screening['hplc_input']
     results_dir = cfg_screening['results_dir']
-    save = cfg_screening.get('save', False)  # NEW: defaults to False if missing
-
+    save = cfg_screening.get('save', False)
     screening_output = grid_search(cfg_screening, X_data, y_data)
 
     cfg_selection = cfg['pipeline_selection']
