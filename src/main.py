@@ -78,7 +78,7 @@ if __name__ == '__main__':
             'desirability': {
                 'f1_score_spectra': val('Des_F1_TP_spectra'),
                 'fwhm': val('Des_fwhm'),
-                'baseline_mad': val('Des_mad'),  # check column name
+                'baseline_mad': val('Des_mad'),
                 'f1_score_regression_coefficient': val('Des_F1_TP_coef'),
             },
             'geometric_mean': val('Geom_mean'),

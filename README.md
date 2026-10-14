@@ -138,7 +138,7 @@ If `<save>` is `true`, results are written to `<results_dir>`:
 ## Copyright
 
 Technische Universiteit Delft hereby disclaims all copyright interest in the program “Raman-Single-Compound-Calibration-Preprocessing-Optimizer” (used to design Raman preprocessing pipelines via a data driven approach) written by the Authors.
-Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Dean of Faculty of Applied Science
+Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Faculty of Applied Science.
 
 © 2026 Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Delft, The Netherlands.
 
