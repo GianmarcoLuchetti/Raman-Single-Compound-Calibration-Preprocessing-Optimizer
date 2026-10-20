@@ -30,7 +30,7 @@ The following software can be installed via GitHub executing the following code:
 
 After the installation run on your terminal:
 
-```cd /Raman-Single-Compound-Calibration-Preprocessing-Optimizer```
+```cd Raman-Single-Compound-Calibration-Preprocessing-Optimizer```
 
 ### Requirements 
 
@@ -154,8 +154,6 @@ Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Faculty of Applied Science.
 ## License
 
 This software is distributed under a MIT license.
-
-#TODO --> rephase the copyright 
 
 
 
