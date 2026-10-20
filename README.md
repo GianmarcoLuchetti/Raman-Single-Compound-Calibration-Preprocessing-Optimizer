@@ -120,7 +120,7 @@ python main.py
 
 1. **Grid search** (`grid_search.py::grid_searc()`): generates every combination of scattering correction, baseline correction and filtering defined in `config.yml`, and applies each pipeline to the spectra dataset (`preprocessing.py`). Pipelines are evaluated in parallel with `joblib`.
 2. **Evaluation** (`evaluation_metrics.py::Policy::evaluate()`): for each pipeline, computes
-   - *spectral quality metrics*: SNR, FWHM, Voigt fit R², MAD of the baseline, peak F1 score and selectivity;
+   - *spectral quality metrics*: SNR, FWHM, pseudo-Voigt fit R², MAD of the baseline, peak F1 score and selectivity;
    - *calibration performance metrics*: rRMSECV from cross-validated PLS on the calibration set and peak F1 score of the regression vector.
 3. **Selection** (`utils.py::selection()`): discards pipelines failing the hard filter, then ranks the remainder by the geometric mean of Derringer–Suich desirability functions across all metrics.
 
