@@ -136,9 +136,9 @@ If `<save>` is `true`, results are written to `<results_dir>`:
 
 
 ## References
-[1] G. L. Sfondalmondo and M. E. Klijn, “ Balancing Prediction Performance and Spectral Interpretability: Multimetric Guided Design of Raman Spectrum Preprocessing Pipelines to Transfer Single Compound Models to Bioprocess Data,” Journal of Raman Spectroscopy (2026): 1–19, https://doi.org/10.1002/jrs.70223.
+[1] G. L. Sfondalmondo and M. E. Klijn, “Balancing Prediction Performance and Spectral Interpretability: Multimetric Guided Design of Raman Spectrum Preprocessing Pipelines to Transfer Single Compound Models to Bioprocess Data,” Journal of Raman Spectroscopy (2026): 1–19, https://doi.org/10.1002/jrs.70223.
 
-[2] Klaverdijk, M., L. A. Smulders, M. Ottens, and M. E. Klijn. 2026. “ Towards Rapid Calibration of Bioprocess Quantification Models Using Single Compound Raman Spectra: A Comparison of Four Approaches.” Biotechnology and Bioengineering 123: 324–336. https://doi.org/10.1002/bit.70092.
+[2] Klaverdijk, M., L. A. Smulders, M. Ottens, and M. E. Klijn. “Towards Rapid Calibration of Bioprocess Quantification Models Using Single Compound Raman Spectra: A Comparison of Four Approaches.” Biotechnology and Bioengineering (2026): 324–336, https://doi.org/10.1002/bit.70092.
 
 
 
