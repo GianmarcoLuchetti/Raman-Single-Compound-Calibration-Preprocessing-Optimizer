@@ -2,9 +2,9 @@
 
 ## Description
 
-The following repository provides the code from the publication: 'Balancing prediction performance and spectral interpretability: Multi-metric 
-guided design of Raman spectrum preprocessing pipelines to transfer single compound models to bioprocess data' (**ADD DOI**) [1]. 
-The code is used to design data preprocessing pipelines for the rapid calibration with single-compound Raman spectra [2],
+The following repository provides the code from the publication: "Balancing prediction performance and spectral interpretability: Multi-metric 
+guided design of Raman spectrum preprocessing pipelines to transfer single compound models to bioprocess data" (https://doi.org/10.1002/jrs.70223) [1]. 
+The code is used to design data preprocessing pipelines for Raman rapid calibration with single-compound spectra [2],
 using evaluation metrics measured after testing a specific pipeline. The tool provides an automated workflow for screening pipelines and
 selecting the best based on a multi-criteria evaluation policy.
 
@@ -135,9 +135,16 @@ If `<save>` is `true`, results are written to `<results_dir>`:
 
 
 
+## References
+[1] G. L. Sfondalmondo and M. E. Klijn, “ Balancing Prediction Performance and Spectral Interpretability: Multimetric Guided Design of Raman Spectrum Preprocessing Pipelines to Transfer Single Compound Models to Bioprocess Data,” Journal of Raman Spectroscopy (2026): 1–19, https://doi.org/10.1002/jrs.70223.
+
+[2] Klaverdijk, M., L. A. Smulders, M. Ottens, and M. E. Klijn. 2026. “ Towards Rapid Calibration of Bioprocess Quantification Models Using Single Compound Raman Spectra: A Comparison of Four Approaches.” Biotechnology and Bioengineering 123: 324–336. https://doi.org/10.1002/bit.70092.
+
+
+
 ## Copyright
 
-Technische Universiteit Delft hereby disclaims all copyright interest in the program “Raman-Single-Compound-Calibration-Preprocessing-Optimizer” (used to design Raman preprocessing pipelines via a data driven approach) written by the Authors.
+Technische Universiteit Delft hereby disclaims all copyright interest in the program “Raman-Single-Compound-Calibration-Preprocessing-Optimizer” (used to design Raman preprocessing pipelines via a data driven approach) written by the Authors:
 Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Faculty of Applied Science.
 
 © 2026 Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Delft, The Netherlands.
@@ -147,3 +154,10 @@ Gianmarco Luchetti Sfondalmondo and Marieke Klijn, Faculty of Applied Science.
 ## License
 
 This software is distributed under a MIT license.
+
+#TODO --> rephase the copyright 
+
+
+
+## Funding
+This project is funded by Schmidt Sciences
