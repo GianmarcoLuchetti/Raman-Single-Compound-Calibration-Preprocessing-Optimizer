@@ -263,18 +263,3 @@ def grid_search(cfg: dict, x_data: str, y_data: str) -> pd.DataFrame | None:
     print(f"\n### ✅ Grid Search Complete — Total Time: {time.time() - t0:.2f} sec ###")
 
     return results_df
-
-
-if __name__ == "__main__":
-
-    warnings.filterwarnings('ignore')
-
-    with open(u.get_data_path("config.yml"), "rb") as f:
-        cfg = yaml.safe_load(f)["pipeline_optimization"]
-
-    X_DATA = cfg['raman_input']
-    Y_DATA = cfg['hplc_input']
-    DATA_OUTPUT = cfg['file_out']
-
-    results = grid_search(cfg, X_DATA, Y_DATA, DATA_OUTPUT)
-    # results.to_csv('test_results_glu.csv')
