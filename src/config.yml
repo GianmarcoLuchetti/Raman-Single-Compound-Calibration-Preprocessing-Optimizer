@@ -1,13 +1,12 @@
 pipeline_screening:
-  raman_input: 'pure_glu_spectra.csv'
-  hplc_input: 'pure_glu_hplc.csv'
+  raman_input: '' # insert here your single-compound spectra dataset, e.g., 'glucose_spectra.csv'
+  hplc_input: '' # insert here your concentrations dataset, e.g., 'glucose_hplc.csv'
   results_dir: results/
   save: true
-  evaluation_policy:
+  evaluation_policy: # insert here screening parameters
     n_components: 1
     intensity_tolerance: 100
-#    reference_peaks: [880, 1049, 1089, 1278, 1455] #Pappas 2016
-    reference_peaks: [713, 774, 850, 903, 918, 1022, 1066, 1128, 1206, 1265, 1333, 1368, 1461 ] # Dude 2019 Glucose
+    reference_peaks: [] # insert here your reference peaks, e.g., [713, 774, 850, 903]
     wn_tolerance_spectra: 2
     fit_window: 50
     n_splits: 5
@@ -21,46 +20,55 @@ pipeline_screening:
       - Snr_improvement
       - RMSE_pct
       - Median_F1_coef
-  baseline:
+  baseline: # insert here baseline correction configurations
     none:
       alg: ""
+    poly:
+      alg: "poly_order={poly_order}"
+      poly_order: [ 1, 2, 3, 4, 5 ]
     asls:
       alg: "lam={lam}, p={p}, diff_order={diff_order}"
-      lam: [1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8]
-      p: [1.0e-1, 1.0e-2, 1.0e-3]
-      diff_order: [1, 2]
+      lam: [ 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8 ]
+      p: [ 1.0e-1, 5.0e-2, 1.0e-2, 5.0e-3, 1.0e-3 ]
+      diff_order: [ 1, 2, 3 ]
+    mpls:
+      alg: "lam={lam}, p={p}, diff_order={diff_order}"
+      lam: [ 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8 ]
+      p: [ 1.0e-1, 5.0e-2, 1.0e-2, 5.0e-3, 1.0e-3 ]
+      diff_order: [ 1, 2, 3 ]
     mixture_model:
-      alg: "lam={lam}, p={p}, num_knots={num_knots}, diff_order={diff_order}"
-      lam: [1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7]
-      p: [1.0e-1, 1.0e-2, 1.0e-3]
-      num_knots: [50, 75, 100]
-      diff_order: [2, 3]
-  scattering:
+      alg: "lam={lam}, p={p}, num_knots={num_knots}, spline_degree={spline_degree}, diff_order={diff_order}"
+      lam: [ 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7 ]
+      p: [ 1.0e-1, 5.0e-2, 1.0e-2, 5.0e-3, 1.0e-3 ]
+      num_knots: [ 25, 50, 75, 100, 150, 250 ]
+      spline_degree: [ 3 ]
+      diff_order: [ 2, 3 ]
+    airpls:
+      alg: "lam={lam}, diff_order={diff_order}, max_iter={max_iter}"
+      lam: [ 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8 ]
+      diff_order: [ 1, 2, 3 ]
+      max_iter: [ 25, 50, 100, 150 ]
+  scattering: # insert here scattering correction configurations
     none:
       alg: ""
     EMSC:
       alg: "order={order}"
-      order: [1, 2]
-  filtering:
+      order: [ 1, 2, 3 ]
+  filtering: # insert here filtering configurations
     none:
       alg: ""
     savitzky-golay:
       alg: "window_length={window_length}, polyorder={polyorder}"
-      window_length: [5, 7, 9]
-      polyorder: [2, 3]
+      window_length: [ 5, 7, 9, 11, 15, 21 ]
+      polyorder: [ 1, 2, 3 ]
+    gaussian:
+      alg: "sigma={sigma}"
+      sigma: [ 0.5, 1.0, 1.5, 2.0, 3.0 ]
+    median_filter:
+      alg: "size={kernel_size}"
+      size: [ 3, 5, 7, 9, 11 ]
 
-pipeline_selection:
-#  hard_filters:
-#    Median_selectivity: [large, 0.4]
-#    Snr_improvement:    [large, 1.0]
-#    RMSE_pct:           [small, 5.0]
-#    Median_Voigt:       [large, 0.9]
-#  bounds:
-#    Des_F1_TP_spectra: {metric: Median_F1_TP,        direction: large, lower: 0, upper: 1}
-#    Des_fwhm:          {metric: Median_FWHM,         direction: small, lower: 4, upper: reference, physical_bound: true}
-#    Des_mad:           {metric: Median_mad_baseline, direction: small, lower: 0, upper: reference, physical_bound: true}
-#    Des_F1_TP_coef:    {metric: Median_F1_coef,      direction: large, lower: 0, upper: 1}
-
+pipeline_selection: # insert here selection parameters
   hard_filters:
     Median_selectivity: [large, 0.4]
     Snr_improvement:    [large, 1.0]
